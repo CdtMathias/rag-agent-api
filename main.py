@@ -23,7 +23,7 @@ def index_endpoint(file: UploadFile = File(...), payload = Depends(verify_token)
         tmp.write(file.file.read())
         tmp_path = tmp.name
     index_document(file.filename, tmp_path)
-    os.uname(tmp_path)
+    os.unlink(tmp_path)
     return {"message": "Doc upload avec succes."}
 
 class ChatSchema(BaseModel):
