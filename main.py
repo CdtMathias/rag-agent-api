@@ -1,18 +1,30 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel, Field
 from agent import chat
 from auth import hash_password, verify_password, create_token, verify_token
 from fastapi.security import OAuth2PasswordRequestForm
 from database import get_user, create_user
+from rag import index_document
+import tempfile
+import os
 
 app = FastAPI()
 
 @app.get("/")
 def home():
     return {"Message": "Mon premier agent"}
+
+@app.post("/index")
+def index_endpoint(file: UploadFile = File(...), payload = Depends(verify_token)):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as tmp:
+        tmp.write(file.file.read())
+        tmp_path = tmp.name
+    index_document(file.filename, tmp_path)
+    os.uname(tmp_path)
+    return {"message": "Doc upload avec succes."}
 
 class ChatSchema(BaseModel):
     message: str = Field(min_length=1)
